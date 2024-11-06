@@ -1,0 +1,5 @@
+{
+  "cSpell.words": ["mamor", "pauls", "typeorm", "uuidv"],
+  "deno.enable": true,
+  "js/ts.implicitProjectConfig.experimentalDecorators": true
+}
