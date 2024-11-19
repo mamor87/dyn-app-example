@@ -1,12 +1,14 @@
-import { IController } from "../templates/controller.ts";
 // @deno-types="@types/express"
 import express from "express";
+import cookieParser from "cookie-parser";
 import { TemplateLoader } from "../templates/loader.ts";
+import { BASE_SESSION_TIME } from "../const/session.ts";
 
 export interface IServerOptions {
+  sessionTime?: number;
   templatesDir: string;
-  reservedNames: Array<string>;
-  controllers?: Array<new () => IController>;
+  // deno-lint-ignore no-explicit-any
+  controllers?: Array<new () => any>;
   apiHandler?: Record<
     string,
     (req: express.Request, res: express.Response) => void
@@ -15,11 +17,14 @@ export interface IServerOptions {
 
 let templateLoader: TemplateLoader | null = null;
 function getTemplateLoader(
+  sessionTime: number,
   templatesDir: string,
-  controllers: Array<new () => IController>
+  // deno-lint-ignore no-explicit-any
+  controllers: Array<new () => any>
 ): TemplateLoader {
   if (!templateLoader) {
     templateLoader = new TemplateLoader({
+      sessionTime,
       templatesDir,
       controllers,
     });
@@ -28,7 +33,22 @@ function getTemplateLoader(
 }
 
 export function buildServer(options: IServerOptions) {
+  if (!options.sessionTime) {
+    options.sessionTime = BASE_SESSION_TIME;
+  }
   const app = express();
+  app.use(cookieParser());
+
+  app.use((req, res, next) => {
+    if (!req?.cookies?.browserId) {
+      req.cookies = {
+        ...req.cookies,
+        browserId: crypto.randomUUID(),
+      };
+    }
+    res.cookie("browserId", req.cookies.browserId, {maxAge: options.sessionTime});
+    next();
+  });
 
   if (options.apiHandler) {
     for (const key of Object.keys(options.apiHandler)) {
@@ -56,14 +76,19 @@ export function buildServer(options: IServerOptions) {
   }
 
   app.use((req, res, next) => {
-    for (const reservedName of options.reservedNames) {
-      if (req.path.startsWith(reservedName)) {
+    if (options.apiHandler) {
+      for (const key of Object.keys(options.apiHandler)) {
+        const [method, path] = key.split(":");
+        if (req.method !== method || !req.path.startsWith(path)) {
+          continue;
+        }
         next();
         return;
       }
     }
 
     const loader = getTemplateLoader(
+      options.sessionTime ?? BASE_SESSION_TIME,
       options.templatesDir,
       options.controllers ?? []
     );

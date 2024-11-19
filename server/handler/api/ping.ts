@@ -1,5 +1,5 @@
-import type { Request, Response } from "npm:@types/express";
+import { IRequest, IResponse } from "framework";
 
-export function PingHandler(_req: Request, res: Response) {
+export function PingHandler(_req: IRequest, res: IResponse) {
   res.send("pong");
 }

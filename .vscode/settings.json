@@ -1,5 +1,14 @@
 {
-  "cSpell.words": ["mamor", "pauls", "typeorm", "uuidv"],
+  "cSpell.words": [
+    "Abmelden",
+    "Anmeldedaten",
+    "Anmelden",
+    "logindata",
+    "mamor",
+    "pauls",
+    "typeorm",
+    "uuidv"
+  ],
   "deno.enable": true,
   "js/ts.implicitProjectConfig.experimentalDecorators": true
 }

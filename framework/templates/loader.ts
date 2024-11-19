@@ -3,17 +3,19 @@ import { Request, Response } from "express";
 import { join, basename } from "@std/path";
 import { ErrorResult, getController } from "framework";
 import Handlebars from "handlebars";
-import { IController } from "./controller.ts";
+import { BASE_SESSION_TIME } from "../const/session.ts";
 
 function getErrorTemplate(err: Error): string {
   return `<h1>load Template File [Error ${err?.name}]: ${err?.message}</h1>`;
 }
 
 export interface ITemplateLoaderOptions {
+  sessionTime: number;
   templatesDir: string;
   // deno-lint-ignore ban-types
   helpers?: Record<string, Function>;
-  controllers?: Array<new () => IController>;
+  // deno-lint-ignore no-explicit-any
+  controllers?: Array<new () => any>;
 }
 
 export class TemplateLoader {
@@ -23,6 +25,7 @@ export class TemplateLoader {
   private static readonly templateEndings = [".hbs"];
   private static options: ITemplateLoaderOptions = {
     templatesDir: join(import.meta.dirname ?? "", "views"),
+    sessionTime: BASE_SESSION_TIME,
   };
   private static readonly pageCache: Record<string, string> = {};
   private static readonly layoutCache: Record<
@@ -42,12 +45,33 @@ export class TemplateLoader {
       if (path === "/" || path === "") {
         path = "/index";
       }
-      const controllerConstructor = getController(path);
-      let data: IController | null = null;
-      if (controllerConstructor) {
-        data = new controllerConstructor();
-        data.initialize();
+      if (path.includes("/action/")) {
+        const splitted = path.split("/");
+        let lookupPath = "";
+        for (let i = 0; i < splitted.length - 1; i++) {
+          const sp = splitted[i];
+          if (sp !== "action") {
+            lookupPath += sp + "/"
+            continue;
+          }
+          const action = splitted[i + 1];
+          lookupPath = lookupPath.substring(0, lookupPath.length - 1);
+          const data = getController(
+            lookupPath,
+            req.cookies.browserId,
+            TemplateLoader.options.sessionTime
+          );
+          if (typeof data[action] === "function") {
+            data[action](req, res);
+            return;
+          }
+        }
       }
+      const data = getController(
+        path,
+        req.cookies.browserId,
+        TemplateLoader.options.sessionTime
+      );
       const result = Handlebars.compile(rawTemplate)(
         data,
         TemplateLoader.getExecuteOptions()
@@ -74,6 +98,7 @@ export class TemplateLoader {
           TemplateLoader.options.templatesDir,
           TemplateLoader.pageDir
         ),
+        sessionTime: BASE_SESSION_TIME,
       },
       ...path.split("/")
     );
@@ -107,6 +132,7 @@ export class TemplateLoader {
             TemplateLoader.options.templatesDir,
             TemplateLoader.layoutDir
           ),
+          sessionTime: BASE_SESSION_TIME,
         },
         entry.name
       );
@@ -124,6 +150,7 @@ export class TemplateLoader {
     const [content, error] = TemplateLoader.loadFile(
       {
         templatesDir: join(TemplateLoader.options.templatesDir, source),
+        sessionTime: BASE_SESSION_TIME,
       },
       path
     );
@@ -163,7 +190,11 @@ export class TemplateLoader {
       helpers: {
         // deno-lint-ignore no-explicit-any
         component: (path: string, data: any) =>
-          this.load.bind(this)(path, data, TemplateLoader.componentDir),
+          this.load.bind(this)(
+            path,
+            data?.hash ?? data,
+            TemplateLoader.componentDir
+          ),
         ...TemplateLoader.options.helpers,
       },
     };

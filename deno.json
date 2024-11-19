@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run -A --watch server/main.ts",
+    "dev": "deno run -A --watch='server/**/*.{ts,js}' --watch='server/views/**/*.{hbs}' server/main.ts",
     "run": "deno run -A server/main.ts",
     "run:debug": "deno run --inspect-brk -A server/main.ts",
     "test": "deno test -A",
@@ -12,6 +12,7 @@
     "@std/path": "jsr:@std/path",
     "@types/express": "npm:@types/express",
     "express": "npm:express",
+    "cookie-parser": "npm:cookie-parser",
     "typeorm": "npm:typeorm",
     "sqlite3": "npm:sqlite3",
     "handlebars": "npm:handlebars",
