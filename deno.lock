@@ -1,6 +1,7 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@dx/inject@*": "0.1.17",
     "jsr:@std/assert@1": "1.0.6",
     "jsr:@std/fs@*": "1.0.5",
     "jsr:@std/internal@^1.0.4": "1.0.4",
@@ -11,10 +12,17 @@
     "npm:cookie-parser@*": "1.4.7",
     "npm:express@*": "4.21.1",
     "npm:handlebars@*": "4.7.8",
+    "npm:reflect-metadata@0.2.2": "0.2.2",
     "npm:sqlite3@*": "5.1.7",
     "npm:typeorm@*": "0.3.20_sqlite3@5.1.7"
   },
   "jsr": {
+    "@dx/inject@0.1.17": {
+      "integrity": "45868f86689a156ce378c7d5bbe3febac9125c5cdf220986e2e1c826c6274dec",
+      "dependencies": [
+        "npm:reflect-metadata"
+      ]
+    },
     "@std/assert@1.0.6": {
       "integrity": "1904c05806a25d94fe791d6d883b685c9e2dcd60e4f9fc30f4fc5cf010c72207",
       "dependencies": [

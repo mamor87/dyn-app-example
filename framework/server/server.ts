@@ -37,6 +37,7 @@ export function buildServer(options: IServerOptions) {
     options.sessionTime = BASE_SESSION_TIME;
   }
   const app = express();
+  app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
   app.use((req, res, next) => {
@@ -46,7 +47,9 @@ export function buildServer(options: IServerOptions) {
         browserId: crypto.randomUUID(),
       };
     }
-    res.cookie("browserId", req.cookies.browserId, {maxAge: options.sessionTime});
+    res.cookie("browserId", req.cookies.browserId, {
+      maxAge: options.sessionTime,
+    });
     next();
   });
 

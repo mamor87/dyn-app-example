@@ -9,4 +9,5 @@ export { Store } from "./tools/store/store.ts";
 export * from "./templates/controller.ts";
 export { TemplateLoader } from "./templates/loader.ts";
 export * from "./server/server.ts";
+export * from "./di/injectable.ts";
 export * as typeorm from "typeorm";

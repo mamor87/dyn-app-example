@@ -3,7 +3,9 @@
     <form>
       {{{component "inputs/text" id="login" label="Anmeldedaten" value=logindata.login}}}
       {{{component "inputs/password" id="password" label="Password" value=logindata.password}}}
+      <button hx-post="/login/action/login">
+        Anmelden
+      </button>
     </form>
-    <button hx-post="/login/action/login">Anmelden</button>
   {{/inline}}
 {{/login}}
