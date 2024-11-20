@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import { inject, Injectable, overwriteInjectionTarget } from "framework";
-import { assertEquals, assertNotEquals } from "@std/assert";
+import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 
 // Helper
 const getGreeting = (name: string) => `Hello, ${name}`;
@@ -94,4 +94,10 @@ Deno.test("[Injectable]: can mock injection with custom token", () => {
     EXPECTED.mockedCustomGreeting,
     "wrong service injected"
   );
+});
+
+Deno.test("[Injectable]: throw error on invalid token", () => {
+  assertThrows(() => {
+    inject("invalid_token");
+  }, "expect error on invalid token");
 });

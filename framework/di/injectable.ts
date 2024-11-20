@@ -9,10 +9,13 @@ export const Injectable = (token?: string) => (constructor: new () => any) => {
   injectionTargets[token ?? constructor.name] = constructor;
 };
 
-export function inject<T>(target: InjectionTarget<T>): T | null {
-  const token = typeof target === typeof '' ? target.toString() : (target as new () => T).name;
+export function inject<T>(target: InjectionTarget<T>): T {
+  const token =
+    typeof target === typeof ""
+      ? target.toString()
+      : (target as new () => T).name;
   if (!injectionTargets[token]) {
-    return null;
+    throw new Error("no injection target found for " + token);
   }
   if (!injectionTargetInstances[token]) {
     injectionTargetInstances[token] = new injectionTargets[token]();
@@ -20,7 +23,13 @@ export function inject<T>(target: InjectionTarget<T>): T | null {
   return injectionTargetInstances[token] ?? null;
 }
 
-export function overwriteInjectionTarget<T>(target: InjectionTarget<T>, replace: T) {
-  const token = typeof target === typeof '' ? target.toString() : (target as new () => T).name;
+export function overwriteInjectionTarget<T>(
+  target: InjectionTarget<T>,
+  replace: T
+) {
+  const token =
+    typeof target === typeof ""
+      ? target.toString()
+      : (target as new () => T).name;
   injectionTargetInstances[token] = replace;
 }

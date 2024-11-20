@@ -1,9 +1,10 @@
-import { Injectable, Store } from "framework";
+import { inject, Injectable } from "framework";
 import { UserEntity } from "../../entities/user.ts";
+import { AuthenticationStore } from "../../entities/store/authentication.store.ts";
 
 @Injectable()
 export class UserService {
-  private readonly store = new Store("authentication", [UserEntity]);
+  private readonly store = inject(AuthenticationStore);
 
   async getUserByEmail(email: string) {
     const users = await this.store.find(UserEntity, {email});
