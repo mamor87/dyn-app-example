@@ -17,7 +17,7 @@ class TestNoUsage extends BaseEntity {
   fake = "";
 }
 
-Deno.test(async function getAndUseTypeormRepoFromStore() {
+Deno.test("[Store]: use Type ORM Repository from Store", async () => {
   const store = new Store("templates_test", [TestTemplateEntity], true);
   const [repo, err] = await store.getRepo(TestTemplateEntity);
   if (err || !repo) {
@@ -43,7 +43,7 @@ Deno.test(async function getAndUseTypeormRepoFromStore() {
   assertEquals(findResult.find(() => true)?.template, template1.template);
 });
 
-Deno.test(async function throwErrorOnUseNotRegisteredEntity() {
+Deno.test("[Store]: throw Error on use not registered Entity", async () => {
   const store = new Store("templates_test", [TestTemplateEntity], true);
   const [repo, err] = await store.getRepo(TestNoUsage);
   if (repo || !err) {

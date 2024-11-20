@@ -12,6 +12,9 @@ export interface IStore {
   getRepo(
     target: EntityTarget<ObjectLiteral>
   ): Promise<ErrorResult<Repository<ObjectLiteral> | null>>;
+  find<T extends BaseEntity>(target: new () => T, filter: Partial<T>): Promise<T[]>;
+  save<T extends BaseEntity>(target: new () => T, instances: T[]): Promise<T[]>;
+  delete<T extends BaseEntity>(target: new () => T, ids: string[], softDelete?: boolean): Promise<number>;
 }
 
 export class Store implements IStore {
@@ -52,5 +55,34 @@ export class Store implements IStore {
       await this.dataSource.initialize();
     }
     return [this.dataSource.getRepository(target), null];
+  }
+
+  async find<T extends BaseEntity>(target: new () => T, filter: Partial<T>): Promise<T[]> {
+    const [repo, err] = await this.getRepo(target);
+    if (err) {
+      return [];
+    }
+    return (await repo?.findBy(filter)) as T[] ?? new Array<T>();
+  }
+
+  async save<T extends BaseEntity>(target: new () => T, instances: T[]): Promise<T[]> {
+    const [repo, err] = await this.getRepo(target);
+    if (err) {
+      return [];
+    }
+    return (await repo?.save(instances)) ?? new Array<T>();
+  }
+
+  async delete<T extends BaseEntity>(target: new () => T, ids: string[], softDelete?: boolean): Promise<number> {
+    const [repo, err] = await this.getRepo(target);
+    if (err) {
+      return 0;
+    }
+    if (!softDelete) {
+      const result = await repo?.delete(ids);
+      return result?.affected ?? 0;
+    }
+    const result = await repo?.softDelete(ids);
+    return result?.affected ?? 0;
   }
 }

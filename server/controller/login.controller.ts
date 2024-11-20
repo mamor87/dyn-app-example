@@ -31,7 +31,7 @@ export class LoginController implements IControllerInit {
       res.send();
       return;
     }
-    const foundUser = await this.userService?.getUser(req.body.login);
+    const foundUser = await this.userService?.getUserByEmail(req.body.login);
     if (!foundUser) {
       res.setHeader("HX-Redirect", "/login");
       res.send();
