@@ -33,6 +33,10 @@ export class TemplateLoader {
     HandlebarsTemplateDelegate
   > = {};
 
+  get templateEndings() {
+    return TemplateLoader.templateEndings;
+  }
+
   constructor(options: ITemplateLoaderOptions) {
     TemplateLoader.options = options;
   }

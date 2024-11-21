@@ -7,6 +7,7 @@ import { LoginController } from "./controller/login.controller.ts";
 buildServer({
   sessionTime: 24 * 60 * 60 * 1000,
   templatesDir: join(import.meta.dirname ?? "", "views"),
+  publicDir: join(import.meta.dirname ?? "", "public"),
   apiHandler: handlers,
   controllers: [IndexController, LoginController],
 }).listen(3000);

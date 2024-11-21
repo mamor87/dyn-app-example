@@ -6,7 +6,8 @@ import { BASE_SESSION_TIME } from "../const/session.ts";
 
 export interface IServerOptions {
   sessionTime?: number;
-  templatesDir: string;
+  templatesDir?: string;
+  publicDir?: string;
   // deno-lint-ignore no-explicit-any
   controllers?: Array<new () => any>;
   apiHandler?: Record<
@@ -78,25 +79,41 @@ export function buildServer(options: IServerOptions) {
     }
   }
 
-  app.use((req, res, next) => {
-    if (options.apiHandler) {
-      for (const key of Object.keys(options.apiHandler)) {
-        const [method, path] = key.split(":");
-        if (req.method !== method || !req.path.startsWith(path)) {
-          continue;
+  if (options.templatesDir) {
+    app.use((req, res, next) => {
+      if (options.apiHandler) {
+        for (const key of Object.keys(options.apiHandler)) {
+          const [method, path] = key.split(":");
+          if (req.method !== method || !req.path.startsWith(path)) {
+            continue;
+          }
+          next();
+          return;
         }
-        next();
-        return;
       }
-    }
 
-    const loader = getTemplateLoader(
-      options.sessionTime ?? BASE_SESSION_TIME,
-      options.templatesDir,
-      options.controllers ?? []
-    );
-    loader.execute(req, res);
-  });
+      const loader = getTemplateLoader(
+        options.sessionTime ?? BASE_SESSION_TIME,
+        options.templatesDir ?? "",
+        options.controllers ?? []
+      );
+      for (const ending of loader.templateEndings) {
+        const parts = req.path.split("/");
+        if (
+          req.path.endsWith(ending) ||
+          (parts.length > 0 && !parts[parts.length - 1].includes("."))
+        ) {
+          loader.execute(req, res);
+          return;
+        }
+      }
+      next();
+    });
+  }
+
+  if (options.publicDir) {
+    app.use(express.static(options.publicDir));
+  }
 
   return app;
 }
