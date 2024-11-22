@@ -1,0 +1,13 @@
+{{#> login}}
+  {{#*inline "content"}}
+    <form>
+      {{{component "inputs->text" id="name" label=texts.name value=registration.name}}}
+      {{{component "inputs->email" id="email" label=texts.email value=registration.email}}}
+      {{{component "inputs->password" id="password" label=texts.password value=registration.password}}}
+      {{{component "inputs->password" id="password_repeat" label=texts.passwordRepeat value=registration.passwordRepeat}}}
+      <button hx-post="/registration/action/send">
+        {{texts.register}}
+      </button>
+    </form>
+  {{/inline}}
+{{/login}}

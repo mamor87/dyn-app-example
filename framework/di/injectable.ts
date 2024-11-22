@@ -14,7 +14,7 @@ export function inject<T>(target: InjectionTarget<T>): T {
     typeof target === typeof ""
       ? target.toString()
       : (target as new () => T).name;
-  if (!injectionTargets[token]) {
+  if (!injectionTargets[token] && typeof target !== typeof "") {
     throw new Error("no injection target found for " + token);
   }
   if (!injectionTargetInstances[token]) {

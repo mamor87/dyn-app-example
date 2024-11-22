@@ -9,9 +9,14 @@ function getErrorTemplate(err: Error): string {
   return `<h1>load Template File [Error ${err?.name}]: ${err?.message}</h1>`;
 }
 
+export interface IComponentLoader {
+  load<T>(path: string): string;
+}
+
 export interface ITemplateLoaderOptions {
   sessionTime: number;
   templatesDir: string;
+  componentLoader?: () => IComponentLoader;
   // deno-lint-ignore ban-types
   helpers?: Record<string, Function>;
   // deno-lint-ignore no-explicit-any
@@ -41,7 +46,7 @@ export class TemplateLoader {
     TemplateLoader.options = options;
   }
 
-  execute(req: Request, res: Response) {
+  async execute(req: Request, res: Response) {
     try {
       this.getLayouts();
       const rawTemplate = this.getPage(req.path);
@@ -55,12 +60,13 @@ export class TemplateLoader {
         for (let i = 0; i < splitted.length - 1; i++) {
           const sp = splitted[i];
           if (sp !== "action") {
-            lookupPath += sp + "/"
+            lookupPath += sp + "/";
             continue;
           }
           const action = splitted[i + 1];
           lookupPath = lookupPath.substring(0, lookupPath.length - 1);
-          const data = getController(
+          const data = await getController(
+            req,
             lookupPath,
             req.cookies.browserId,
             TemplateLoader.options.sessionTime
@@ -71,7 +77,8 @@ export class TemplateLoader {
           }
         }
       }
-      const data = getController(
+      const data = await getController(
+        req,
         path,
         req.cookies.browserId,
         TemplateLoader.options.sessionTime
@@ -151,7 +158,7 @@ export class TemplateLoader {
     if (!TemplateLoader.allowedTemplateEnding(path)) {
       path += ".hbs";
     }
-    const [content, error] = TemplateLoader.loadFile(
+    let [content, error] = TemplateLoader.loadFile(
       {
         templatesDir: join(TemplateLoader.options.templatesDir, source),
         sessionTime: BASE_SESSION_TIME,
@@ -159,7 +166,12 @@ export class TemplateLoader {
       path
     );
     if (error) {
-      return content;
+      if (!TemplateLoader.options.componentLoader) {
+        return content;
+      }
+      content = TemplateLoader.options
+        .componentLoader()
+        .load(path.substring(0, path.length - 4));
     }
     try {
       return Handlebars.compile(content)(

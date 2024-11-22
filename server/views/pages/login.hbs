@@ -1,10 +1,10 @@
 {{#> login}}
   {{#*inline "content"}}
     <form>
-      {{{component "inputs/text" id="login" label="Anmeldedaten" value=logindata.login}}}
-      {{{component "inputs/password" id="password" label="Password" value=logindata.password}}}
+      {{{component "inputs->text" id="login" label=texts.loginData value=logindata.login}}}
+      {{{component "inputs->password" id="password" label=texts.password value=logindata.password}}}
       <button hx-post="/login/action/login">
-        Anmelden
+        {{texts.login}}
       </button>
     </form>
   {{/inline}}

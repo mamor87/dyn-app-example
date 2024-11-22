@@ -1,5 +1,7 @@
+import { IRequest } from "framework";
+
 export interface IControllerInit {
-  initialize(): void;
+  initialize(req: IRequest): Promise<void>;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -14,7 +16,8 @@ export const Controller = (pagePath: string) => {
   };
 };
 
-export function getController(
+export async function getController(
+  req: IRequest,
   path: string,
   browserId: string,
   sessionTime: number
@@ -27,7 +30,7 @@ export function getController(
   if (!controllerInstances[instanceKey]) {
     controllerInstances[instanceKey] = new controllers[path]();
     if (typeof controllerInstances[instanceKey].initialize === "function") {
-      controllerInstances[instanceKey].initialize();
+      await controllerInstances[instanceKey].initialize(req);
     }
   }
   controllerInstances[instanceKey]._EXPIRES = getExpired(sessionTime);

@@ -5,10 +5,14 @@
     "Anmelden",
     "logindata",
     "mamor",
+    "mmorgenstern",
+    "Passwort",
     "pauls",
+    "Registrieren",
     "Testdata",
     "typeorm",
-    "uuidv"
+    "uuidv",
+    "wiederholen"
   ],
   "deno.enable": true,
   "js/ts.implicitProjectConfig.experimentalDecorators": true

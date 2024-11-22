@@ -16,7 +16,8 @@
     "typeorm": "npm:typeorm",
     "sqlite3": "npm:sqlite3",
     "handlebars": "npm:handlebars",
-    "framework": "./framework/mod.ts"
+    "framework": "./framework/mod.ts",
+    "ui": "./ui/mod.ts"
   },
   "nodeModulesDir": "auto",
   "compilerOptions": {

@@ -1,13 +1,14 @@
 // @deno-types="@types/express"
 import express from "express";
 import cookieParser from "cookie-parser";
-import { TemplateLoader } from "../templates/loader.ts";
+import { IComponentLoader, TemplateLoader } from "../templates/loader.ts";
 import { BASE_SESSION_TIME } from "../const/session.ts";
 
 export interface IServerOptions {
   sessionTime?: number;
   templatesDir?: string;
   publicDir?: string;
+  componentLoader?: () => IComponentLoader;
   // deno-lint-ignore no-explicit-any
   controllers?: Array<new () => any>;
   apiHandler?: Record<
@@ -21,13 +22,15 @@ function getTemplateLoader(
   sessionTime: number,
   templatesDir: string,
   // deno-lint-ignore no-explicit-any
-  controllers: Array<new () => any>
+  controllers: Array<new () => any>,
+  componentLoader?: () => IComponentLoader
 ): TemplateLoader {
   if (!templateLoader) {
     templateLoader = new TemplateLoader({
       sessionTime,
       templatesDir,
       controllers,
+      componentLoader,
     });
   }
   return templateLoader;
@@ -48,7 +51,16 @@ export function buildServer(options: IServerOptions) {
         browserId: crypto.randomUUID(),
       };
     }
+    if (!req?.cookies?.language) {
+      req.cookies = {
+        ...req.cookies,
+        language: getPreferredLanguage(req.headers["accept-language"] ?? ""),
+      };
+    }
     res.cookie("browserId", req.cookies.browserId, {
+      maxAge: options.sessionTime,
+    });
+    res.cookie("language", req.cookies.language, {
       maxAge: options.sessionTime,
     });
     next();
@@ -80,7 +92,7 @@ export function buildServer(options: IServerOptions) {
   }
 
   if (options.templatesDir) {
-    app.use((req, res, next) => {
+    app.use(async (req, res, next) => {
       if (options.apiHandler) {
         for (const key of Object.keys(options.apiHandler)) {
           const [method, path] = key.split(":");
@@ -95,7 +107,8 @@ export function buildServer(options: IServerOptions) {
       const loader = getTemplateLoader(
         options.sessionTime ?? BASE_SESSION_TIME,
         options.templatesDir ?? "",
-        options.controllers ?? []
+        options.controllers ?? [],
+        options.componentLoader
       );
       for (const ending of loader.templateEndings) {
         const parts = req.path.split("/");
@@ -103,7 +116,7 @@ export function buildServer(options: IServerOptions) {
           req.path.endsWith(ending) ||
           (parts.length > 0 && !parts[parts.length - 1].includes("."))
         ) {
-          loader.execute(req, res);
+          await loader.execute(req, res);
           return;
         }
       }
@@ -116,4 +129,18 @@ export function buildServer(options: IServerOptions) {
   }
 
   return app;
+}
+
+function getPreferredLanguage(value: string, defaultValue = "en"): string {
+  for (const v of value.split(";")) {
+    if (v.startsWith("q=") || !v.includes(",")) {
+      continue;
+    }
+    const tmp = v.split(",");
+    if (tmp.length < 2) {
+      continue;
+    }
+    return tmp[1];
+  }
+  return defaultValue;
 }

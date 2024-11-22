@@ -7,7 +7,7 @@ export class IndexController implements IControllerInit {
     age: 0,
   };
 
-  initialize(): void {
+  async initialize() {
     this.user.name = "Markus";
     this.user.age = 37;
   }
